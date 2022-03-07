@@ -41,7 +41,7 @@ const char *location = FICHIER;
 
 int winSize = 768;
 
-int NbPasses = 1; // should be changed to 32.
+int NbPasses = 10; // should be changed to 32.
 int passNum ;
 
 using std::cerr;
@@ -94,64 +94,84 @@ int main(int argc, char *argv[])
     
     // Read the data.
     
-     passNum=0;
+    passNum=0;
     int zStart = 0;
     int zEnd = gridSize-1;
     
-     float *rgba = new float[4*winSize*winSize];
-     
-     
-     for( passNum=0; passNum<NbPasses;passNum++){//coorec
+    float *rgba = new float[4*winSize*winSize];
+    float *auxrgba = new float[4*winSize*winSize];
+    float *auxZBuffer = new float[4*winSize*winSize];
+
+    for (int i = 0 ; i < winSize*winSize ; i++) {
+        auxZBuffer[i]=1.0;
+        auxrgba[i*4] = 0;
+        auxrgba[i*4+1] = 0;
+        auxrgba[i*4+2] = 1;
+        auxrgba[i*4+3] = 0;
+    }
+
+    for( passNum=0; passNum<NbPasses; passNum++){//coorec
+
+//        int step=(gridSize/3)-1;
+        int step=gridSize/NbPasses;
+//        int zStart = 0;
+        int zStart = passNum * step;
+//        int zEnd = zStart+step;
+        int zEnd = (passNum+1) * step;
     
-    int step=(gridSize/3)-1;
-        
-        
-        int zStart = 0;
-        
-        
-        int zEnd = zStart+step;
+        GetMemorySize(("Pass "+std::to_string(NbPasses)+ " before read").c_str());
+        // On supprime le dernier passage en mettant -1 pour éviter la segfault
+        if (passNum == NbPasses-1)
+            zEnd += (gridSize % NbPasses) - 1;
+        vtkRectilinearGrid *rg = ReadGrid(zStart, zEnd);
+        GetMemorySize(("Pass "+std::to_string(passNum)+ " after  read").c_str());
     
+        cf->SetInputData(rg);
+        rg->Delete();
     
-       GetMemorySize(("Pass "+std::to_string(NbPasses)+ " before read").c_str());
-    vtkRectilinearGrid *rg = ReadGrid(zStart, zEnd);
-      GetMemorySize(("Pass "+std::to_string(passNum)+ " after  read").c_str());
+        // Force an update and set the parallel rank as the active scalars.
+        cf->Update();
+        cf->GetOutput()->GetPointData()->SetActiveScalars("pass_num");
     
-    cf->SetInputData(rg);
-    rg->Delete();
+        renwin->Render();
     
-    // Force an update and set the parallel rank as the active scalars.
-    cf->Update();
-    cf->GetOutput()->GetPointData()->SetActiveScalars("pass_num");
-    
-    renwin->Render();
-    
-    float *rgba = renwin->GetRGBAPixelData(0, 0, winSize-1, winSize-1, 1);
-    float *zbuffer = renwin->GetZbufferData(0, 0, winSize-1, winSize-1);
-    
-    char name[128];
-    sprintf(name, "image%d.png", passNum);
-    WriteImage(name, rgba, winSize,  winSize);
-    
-    
-   float *new_rgba = new float[4*winSize*winSize];
-    bool didComposite = ComposeImageZbuffer(new_rgba, zbuffer,  winSize, winSize);
-    
-    char namez[128];
-    sprintf(namez, "imageZ%d.png", passNum);
-    WriteImage(namez,new_rgba,winSize, winSize);
-  
-   
-    free(rgba);
-    free(zbuffer);
-    free(new_rgba);
+        float *rgba = renwin->GetRGBAPixelData(0, 0, winSize-1, winSize-1, 1);
+        float *zbuffer = renwin->GetZbufferData(0, 0, winSize-1, winSize-1);
+
+        char name[128];
+        sprintf(name, "image%d.png", passNum);
+        WriteImage(name, rgba, winSize,  winSize);
+
+        float *new_rgba = new float[4*winSize*winSize];
+        bool didComposite = ComposeImageZbuffer(new_rgba, zbuffer,  winSize, winSize);
+
+        char namez[128];
+        sprintf(namez, "imageZ%d.png", passNum);
+        WriteImage(namez,new_rgba,winSize, winSize);
+
+        for (int i = 0 ; i < winSize*winSize ; i++) {
+            if (auxZBuffer[i] >= zbuffer[i]) {
+                auxZBuffer[i] = zbuffer[i];
+                auxrgba[i * 4] = rgba[i * 4];
+                auxrgba[i * 4 + 1] = rgba[i * 4 + 1];
+                auxrgba[i * 4 + 2] = rgba[i * 4 + 2];
+                auxrgba[i * 4 + 3] = rgba[i * 4 + 3];
+            }
+        }
+
+        free(rgba);
+        free(zbuffer);
+        free(new_rgba);
     }//fin du for 
     
-     WriteImage("final_image.png", rgba, winSize, winSize);
-    
+//     WriteImage("final_image.png", rgba, winSize, winSize);
+     WriteImage("final_image.png", auxrgba, winSize, winSize);
+
     GetMemorySize("end");
     timer->StopTimer(t1,"time");
     
-    
+    free(auxrgba);
+    free(auxZBuffer);
 }
 
 
