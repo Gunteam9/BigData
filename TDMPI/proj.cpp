@@ -59,14 +59,15 @@ vtkRectilinearGrid  *ReadGrid(int zStart, int zEnd);
 void                 WriteImage(const char *name, const float *rgba, int width, int height);
 
 
-vtkRectilinearGrid *
-ParallelReadGrid(void)
+vtkRectilinearGrid* ParallelReadGrid()
 {
-    int zStart = (gridSize/1.7)-1;
-    int zEnd = (gridSize/1.5)-1;
-
-//    int zStart = 0;
-//    int zEnd = (gridSize)-1;
+    int zCount = parRank < gridSize % parSize
+            ? (gridSize / parSize) + 1
+            : gridSize / parSize;
+    int zStart = parRank < gridSize % parSize
+            ? ((gridSize / parSize) + 1) * parRank
+            : ((gridSize / parSize) + 1) * (gridSize % parSize) + (gridSize / parSize) * (parRank - (gridSize % parSize));
+    int zEnd = zStart + zCount - 1;
 
     // if you don't want any data for this processor, just do this:
     //    return NULL;
@@ -74,13 +75,27 @@ ParallelReadGrid(void)
     return ReadGrid(zStart, zEnd);
 }
 
-bool
-CompositeImage(float *rgba_in, float *zbuffer, float *rgba_out,
-               int image_width, int image_height)
-{
-    int npixels = image_width*image_height;
-    for (int i = 0 ; i < npixels*4 ; i++)
-        rgba_out[i] = rgba_in[i];
+bool CompositeImage(const float *rgbaIn, float *zBuffer, float *rgbaOut, int imageWidth, int imageHeight) {
+    int nPixels = imageWidth * imageHeight;
+    auto* zBufferMin = new float[nPixels];
+
+    MPI_Allreduce(zBuffer, zBufferMin, nPixels, MPI_FLOAT, MPI_MIN, MPI_COMM_WORLD);
+
+    auto* rgbaTmp = new float[4 * nPixels];
+    for (int i = 0; i <= nPixels; ++i) {
+        if (zBuffer[i] <= zBufferMin[i]) {
+            rgbaTmp[i * 4] = rgbaIn[i * 4];
+            rgbaTmp[i * 4 + 1] = rgbaIn[i * 4 + 1];
+            rgbaTmp[i * 4 + 2] = rgbaIn[i * 4 + 2];
+            rgbaTmp[i * 4 + 3] = rgbaIn[i * 4 + 3];
+        }
+    }
+
+    MPI_Reduce(rgbaTmp, rgbaOut, 4 * nPixels, MPI_FLOAT, MPI_MAX, 0, MPI_COMM_WORLD);
+
+    delete[] zBufferMin;
+    delete[] rgbaTmp;
+
     return true;
 }
 
