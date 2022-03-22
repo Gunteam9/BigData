@@ -41,7 +41,7 @@ const char *location = FICHIER;
 
 int winSize = 768;
 
-int NbPasses = 10; // should be changed to 32.
+int NbPasses = 4; // should be changed to 32.
 int passNum ;
 
 using std::cerr;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     // Set up the pipeline.
     vtkContourFilter *cf = vtkContourFilter::New();
     cf->SetNumberOfContours(1);
-    cf->SetValue(0, 5.0);
+    cf->SetValue(0, 3.4);
     
     vtkDataSetMapper *mapper = vtkDataSetMapper::New();
     mapper->SetInputConnection(cf->GetOutputPort());

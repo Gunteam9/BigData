@@ -1,0 +1,31 @@
+Mystère 1: Un cochon tirelire
+- Start explorer val: 25 000
+- End explorer val: 40 000
+- Fait via découpe
+
+Mystère 2: Des arbres sur un tronc
+- Start explorer val: 25 000
+- End explorer val: 35 000
+- Fait via visualisation
+
+Mystère 4: Une dent
+- Start explorer val: 60 000
+- End explorer val: 63 000
+- Fait via visualisation
+
+Mystère 5:
+
+
+Mystère 6:
+
+
+Mystère 8:
+
+
+Mystère 9:
+
+
+Mystère 10:
+
+
+Mystère 11:
