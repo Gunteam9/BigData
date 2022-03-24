@@ -188,7 +188,7 @@
 		<Unit filename="/home/etud/o2196290/Documents/BigData/TMP/helpers.h">
 			<Option target="vtktp"/>
 		</Unit>
-		<Unit filename="/home/etud/o2196290/Documents/BigData/TMP/outOfCore.cpp">
+		<Unit filename="/home/etud/o2196290/Documents/BigData/TMP/outOfCoreMpi.cpp">
 			<Option target="vtktp"/>
 		</Unit>
 		<Unit filename="/home/etud/o2196290/Documents/BigData/TMP/CMakeLists.txt">

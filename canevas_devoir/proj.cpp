@@ -81,15 +81,15 @@
 
 // Mystere 1
 
-#define FICHIER MY_MESHES_PATH "/Mystere1_512_512_134_SHORT.raw"
-int gridSize = 512;
-int YgridSize = 512;
-int ZgridSize = 134;
-
-#define SHORT
-
-int startexploreval=30000;
-int endexploreval=45000;
+//#define FICHIER MY_MESHES_PATH "/Mystere1_512_512_134_SHORT.raw"
+//int gridSize = 512;
+//int YgridSize = 512;
+//int ZgridSize = 134;
+//
+//#define SHORT
+//
+//int startexploreval=30000;
+//int endexploreval=45000;
 
 //#define FICHIER MY_MESHES_PATH "/Mystere2_512_400_512_SHORT.raw"
 //int gridSize = 512;
@@ -112,7 +112,7 @@ int endexploreval=45000;
 //#define SHORT
 //
 //int startexploreval=60000;
-//int endexploreval=62000;
+//int endexploreval=63000;
 
 //#define FICHIER MY_MESHES_PATH "/Mystere5_2048_2048_756_SHORT.raw"
 //
@@ -125,16 +125,16 @@ int endexploreval=45000;
 //int startexploreval=1;
 //int endexploreval=65000;
 
-//#define FICHIER MY_MESHES_PATH "/Mystere6_1118_2046_694_CHAR.raw"
-//
-//int gridSize = 1118;
-//int YgridSize = 2046;
-//int ZgridSize = 694;
-//
-//#define CHAR
-//
-//int startexploreval=1;
-//int endexploreval=255;
+#define FICHIER MY_MESHES_PATH "/Mystere6_1118_2046_694_CHAR.raw"
+
+int gridSize = 1118;
+int YgridSize = 2046;
+int ZgridSize = 694;
+
+#define CHAR
+
+int startexploreval=25;
+int endexploreval=45;
 
 //#define FICHIER MY_MESHES_PATH "/Mystere8_2048_2048_2048_SHORT.raw"
 //int gridSize = 2048;
@@ -167,8 +167,8 @@ int endexploreval=45000;
 //
 //#define CHAR
 //
-//int startexploreval=20000;
-//int endexploreval=50000;
+//int startexploreval=40;
+//int endexploreval=50;
 //int NbPasses = 5;
 
 
@@ -179,8 +179,8 @@ int endexploreval=45000;
 //
 //#define SHORT
 //
-//int startexploreval=20000;
-//int endexploreval=50000;
+//int startexploreval=50000;
+//int endexploreval=60000;
 //int NbPasses = 5;
 
 const char *location = FICHIER ;
@@ -251,56 +251,28 @@ int main(int argc, char *argv[])
     vtkActor *actor = vtkActor::New();
     actor->SetMapper(mapper);
 
-    float startval=valcont;
-    float endval=endexploreval;
-
     mapper->SetScalarRange(startexploreval,endexploreval);
     mapper->SetLookupTable(lut);
 
     ren->AddActor(actor);
     ren->SetViewport(0, 0, 1, 1);
 
-    // vtkCamera *cam = ren->GetActiveCamera();
     vtkCamera *cam ;
-//    if(once) {
-//        once=false;
-//        cam= ren->GetActiveCamera();
-//        cam->SetFocalPoint(0.5, 0.5, 0.5);
-//        cam->SetPosition(0., .0, 3.);
-//        cam->SetViewUp(0., -1.0, 0.0);
-//        bounds = ren->ComputeVisiblePropBounds();
-//        std::cout<<"bounds : "<<bounds[0]<<" ; "<<bounds[1]<<" ; "<<bounds[2]<<" ; "<<bounds[3]<<" ; "<<bounds[4]<<" ; "<<bounds[5]<<" ; "<<endl<<fflush;
-//    } else {
-//        ren->SetActiveCamera(cam);
-//    }
 
-            // cam= ren->GetActiveCamera();
-            //cam->SetFocalPoint(0.5, 0.5, 0.5);
-                           //cam->SetPosition(-0., .0, 3.);
-                            //cam->SetViewUp(0., -1.0, 0.0);
-                       //bounds=ren->ComputeVisiblePropBounds();
-           // std::cout<<"bounds : "<<bounds[0]<<" ; "<<bounds[1]<<" ; "<<bounds[2]<<" ; "<<bounds[3]<<" ; "<<bounds[4]<<" ; "<<bounds[5]<<" ; "<<endl<<fflush;
-
-//    ren->SetActiveCamera(cam);
     cam= ren->GetActiveCamera();
-//    cam->SetFocalPoint(0.5,0.5,0.5);
-//    cam->SetPosition(-0.,0.0,3.0);
-//    cam->SetViewUp(0.0,-1.0,0.0);
-   cam->SetPosition(0.5, 3.0, 0.5);
-   cam->SetViewUp(0., 0.0, 1.0);
-   cam->SetFocalPoint(0., 0.0, 0.);
+    cam->SetPosition(0.5, 3.0, 0.5);
+    cam->SetViewUp(0., 0.0, 1.0);
+    cam->SetFocalPoint(0., 0.0, 0.);
 
-//*
+
     vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
     iren->SetRenderWindow(renwin);
     renwin->Render();
     iren->Start();
-    //*/
 
     reader->Delete();
     mapper->Delete();
     cf->Delete();
-//    lut->Delete();
     ren->RemoveActor(actor);
     actor->Delete();
     ren->Delete();

@@ -190,8 +190,6 @@ int main(int argc, char *argv[]) {
     GetMemorySize((p + ":End").c_str());
     timer->StopTimer(t1, (p + ":Time").c_str());
     MPI_Finalize();
-
-
 }
 
 
@@ -310,4 +308,34 @@ WriteImage(const char *name, const float *rgba, int width, int height) {
 
     img->Delete();
     writer->Delete();
+}
+
+bool ComposeImageZbuffer(float *rgba_out, float *zbuffer,   int image_width, int image_height)
+{
+    int npixels = image_width*image_height;
+
+    float min=1;
+    float max=0;
+    for (int i = 0 ; i < npixels ; i++){
+        if (zbuffer[i]<min) min=zbuffer[i];
+        if (zbuffer[i]>max) max=zbuffer[i];
+
+    }
+    std::cout<<"min:"<<min;
+    std::cout<<"max:"<<max<<"  ";
+
+    float coef=1.0/((max-min));
+
+    std::cout<<"coef:"<<coef<<"  ";
+
+    for (int i = 0 ; i < npixels ; i++){
+
+        rgba_out[i*4] = (zbuffer[i]==1.0?0:1-coef*(zbuffer[i]-min));
+        rgba_out[i*4+1] = (zbuffer[i]==1.0?0:1-coef*(zbuffer[i]-min));
+        rgba_out[i*4+2] = (zbuffer[i]==1.0?0:1-coef*(zbuffer[i]-min));
+        rgba_out[i*4+3] = 0.0;
+    }
+
+
+    return false;
 }

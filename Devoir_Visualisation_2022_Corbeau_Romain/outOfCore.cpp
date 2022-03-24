@@ -1,5 +1,7 @@
 #include <string>
+#include <sstream>
 #include <iostream>
+#include <fstream>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
@@ -10,26 +12,32 @@
 #include <vtkLookupTable.h>
 #include <vtkRectilinearGrid.h>
 #include <vtkFloatArray.h>
+#include <vtkShortArray.h>
 #include <vtkUnsignedShortArray.h>
 #include <vtkCutter.h>
 #include <vtkPlane.h>
 #include <vtkPointData.h>
+#include <vtkGraphicsFactory.h>
+//#include <vtkImagingFactory.h>
 #include <vtkPNGWriter.h>
 #include <vtkImageData.h>
 #include <vtkCamera.h>
 #include <vtkContourFilter.h>
 #include <vtkProperty.h>
+#include <vtkVectorNorm.h>
+#include <time.h>
 #include <math.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
 #include <vtkTransformFilter.h>
 
 #include "config.h"
 #include "helpers.h"
-#include "mpi.h"
 
 
 #define BIG
 
+// Frog
 
 //#define FICHIER MY_MESHES_PATH "/Frog.raw_256_256_44_CHAR.raw"
 //
@@ -43,51 +51,21 @@
 //int endexploreval=20;
 
 
-//#define FICHIER MY_MESHES_PATH "/Mystere1_512_512_134_SHORT.raw"
-//int gridSize = 512;
-//int YgridSize = 512;
-//int ZgridSize = 134;
-//
-//#define SHORT
-//
-//int startexploreval=25000;
-//int endexploreval=40000;
-//int NbPasses = 5;
-
-
-//#define FICHIER MY_MESHES_PATH "/Mystere2_512_400_512_SHORT.raw"
-//int gridSize = 512;
-//int YgridSize = 400;
-//int ZgridSize = 512;
-//
-//#define SHORT
-//
-//int startexploreval=25000;
-//int endexploreval=35000;
-
-
-//#define FICHIER MY_MESHES_PATH "/Mystere4_512_512_322_SHORT.raw"
-//int gridSize = 512;
-//int YgridSize = 512;
-//int ZgridSize = 322;
-//
-// #define SHORT
-//
-// int startexploreval=60000;
-// int endexploreval=63000;
-
+// Mystere 5
 
 //#define FICHIER MY_MESHES_PATH "/Mystere5_2048_2048_756_SHORT.raw"
 //
-//int gridSize = 2048;
-//int YgridSize = 2048;
-//int ZgridSize = 756;
+// int gridSize = 2048;
+// int YgridSize = 2048;
+// int ZgridSize = 756;
 //
-//#define SHORT
+// #define SHORT
 //
 //int startexploreval=1;
 //int endexploreval=65000;
 
+
+// Mystere 6
 
 //#define FICHIER MY_MESHES_PATH "/Mystere6_1118_2046_694_CHAR.raw"
 //
@@ -100,6 +78,63 @@
 //int startexploreval=1;
 //int endexploreval=255;
 
+
+// Mystere 1
+
+//#define FICHIER MY_MESHES_PATH "/Mystere1_512_512_134_SHORT.raw"
+//int gridSize = 512;
+//int YgridSize = 512;
+//int ZgridSize = 134;
+//
+//#define SHORT
+//
+//int startexploreval=30000;
+//int endexploreval=45000;
+
+//#define FICHIER MY_MESHES_PATH "/Mystere2_512_400_512_SHORT.raw"
+//int gridSize = 512;
+//int YgridSize = 400;
+//int ZgridSize = 512;
+//
+//#define SHORT
+//
+//int startexploreval=28000;
+//int endexploreval=33000;
+
+
+// Mystere 4
+
+//#define FICHIER MY_MESHES_PATH "/Mystere4_512_512_322_SHORT.raw"
+//int gridSize = 512;
+//int YgridSize = 512;
+//int ZgridSize = 322;
+//
+//#define SHORT
+//
+//int startexploreval=60000;
+//int endexploreval=63000;
+
+//#define FICHIER MY_MESHES_PATH "/Mystere5_2048_2048_756_SHORT.raw"
+//
+//int gridSize = 2048;
+//int YgridSize = 2048;
+//int ZgridSize = 756;
+//
+//#define SHORT
+//
+//int startexploreval=1;
+//int endexploreval=65000;
+
+#define FICHIER MY_MESHES_PATH "/Mystere6_1118_2046_694_CHAR.raw"
+
+int gridSize = 1118;
+int YgridSize = 2046;
+int ZgridSize = 694;
+
+#define CHAR
+
+int startexploreval=25;
+int endexploreval=45;
 
 //#define FICHIER MY_MESHES_PATH "/Mystere8_2048_2048_2048_SHORT.raw"
 //int gridSize = 2048;
@@ -125,16 +160,16 @@
 //int NbPasses = 5;
 
 
-#define FICHIER MY_MESHES_PATH "/Mystere10_1204_1296_224_CHAR.raw"
-int gridSize = 1204;
-int YgridSize = 1296;
-int ZgridSize = 224;
-
-#define CHAR
-
-int startexploreval=20000;
-int endexploreval=50000;
-int NbPasses = 5;
+//#define FICHIER MY_MESHES_PATH "/Mystere10_1204_1296_224_CHAR.raw"
+//int gridSize = 1204;
+//int YgridSize = 1296;
+//int ZgridSize = 224;
+//
+//#define CHAR
+//
+//int startexploreval=40;
+//int endexploreval=50;
+//int NbPasses = 5;
 
 
 //#define FICHIER MY_MESHES_PATH "/Mystere11_512_512_1024_SHORT.raw"
@@ -144,22 +179,20 @@ int NbPasses = 5;
 //
 //#define SHORT
 //
-//int startexploreval=20000;
-//int endexploreval=50000;
+//int startexploreval=50000;
+//int endexploreval=60000;
 //int NbPasses = 5;
-
 
 const char *location = FICHIER ;
 int winSize = 500;
-int numPasses = 6;
+int numPasses = 10;
 int nbimages = 10;
 const char *prefix = "";
 int passNum = 0;
 
-int parRank = 0;
-int parSize = 1;
 
-using namespace std;
+using std::cerr;
+using std::endl;
 
 // Function prototypes
 vtkRectilinearGrid* ReadGrid(int zStart, int zEnd);
@@ -167,65 +200,43 @@ vtkRectilinearGrid* ReadGrid(int zStart, int zEnd);
 void WriteImage(const char *name, const float *rgba, int width, int height);
 bool ComposeImageZbuffer(float *rgba_out, float *zbuffer,   int image_width, int image_height);
 
-vtkRectilinearGrid* ParallelReadGrid() {
-    int zCount = parRank < gridSize % parSize
-                 ? (gridSize / parSize) + 1
-                 : gridSize / parSize;
-    int zStart = parRank < gridSize % parSize
-                 ? ((gridSize / parSize) + 1) * parRank
-                 : ((gridSize / parSize) + 1) * (gridSize % parSize) +
-                   (gridSize / parSize) * (parRank - (gridSize % parSize));
-    int zEnd = zStart + zCount;
-
-    if (parRank == parSize - 1)
-        zEnd -= 1;
-
-    return ReadGrid(zStart, zEnd);
-}
-
-bool CompositeImageParallel(const float *rgbaIn, float *zBuffer, float *rgbaOut, int imageWidth, int imageHeight) {
-    int nPixels = imageWidth * imageHeight;
-    auto *zBufferMin = new float[nPixels];
-
-    MPI_Allreduce(zBuffer, zBufferMin, nPixels, MPI_FLOAT, MPI_MIN, MPI_COMM_WORLD);
-
-    auto *rgbaTmp = new float[4 * nPixels];
-    for (int i = 0; i < nPixels; ++i) {
-        if (zBuffer[i] <= zBufferMin[i]) {
-            rgbaTmp[i * 4 + 0] = rgbaIn[i * 4 + 0];
-            rgbaTmp[i * 4 + 1] = rgbaIn[i * 4 + 1];
-            rgbaTmp[i * 4 + 2] = rgbaIn[i * 4 + 2];
-            rgbaTmp[i * 4 + 3] = rgbaIn[i * 4 + 3];
-        }
-    }
-
-    MPI_Reduce(rgbaTmp, rgbaOut, 4 * nPixels, MPI_FLOAT, MPI_MAX, 0, MPI_COMM_WORLD);
-
-    delete[] zBufferMin;
-    delete[] rgbaTmp;
-
-    return true;
-}
-
-
 int main(int argc, char *argv[])
 {
-    // MPI setup
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &parRank);
-    MPI_Comm_size(MPI_COMM_WORLD, &parSize);
+    srand(time(NULL));
+    int npixels=winSize*winSize;
+    vtkRectilinearGrid *reader = NULL;
 
-    std::string p;
-    GetMemorySize("initialization");
-    int t1;
-    t1 = timer->StartTimer();
+    vtkLookupTable *lut = vtkLookupTable::New();
 
-    // Set up the pipeline.
+    lut->SetHueRange(0.1,0.0);
+    lut->SetSaturationRange(0.0,1.0);
+    lut->SetValueRange(1.0,255.0);
+    lut->SetNumberOfColors(100);
+    lut->Build();
+
+    vtkRenderer *ren = vtkRenderer::New();
+    double bounds[6]={0.00001,1-0.00001,0.00001,1-0.00001,0.00001,1-0.00001};
+
+    ren->ResetCamera(bounds);
+
+    bool once=true;
+    vtkRenderWindow *renwin = vtkRenderWindow::New();
+    renwin->SetSize(winSize, winSize);
+
+    renwin->AddRenderer(ren);
+
     vtkContourFilter *cf = vtkContourFilter::New();
     cf->SetNumberOfContours(1);
+    // cf->SetValue(0, 20.0);
     int valcont=startexploreval;
     cf->SetValue(1,valcont);
 
+    int zStart = 0;
+    int zEnd = ZgridSize - 25;
+
+    reader = ReadGrid(zStart, zEnd);
+
+    cf->SetInputData(reader);
     int maxsize=std::max(gridSize,std::max(YgridSize,ZgridSize));
     vtkSmartPointer<vtkTransform> transform =vtkSmartPointer<vtkTransform>::New();
     transform->Scale(gridSize/(float)maxsize,YgridSize/(float)maxsize,ZgridSize/(float)maxsize);
@@ -234,115 +245,44 @@ int main(int argc, char *argv[])
     transformFilter->SetTransform(transform);
 
     vtkDataSetMapper *mapper = vtkDataSetMapper::New();
-    mapper->SetInputConnection(cf->GetOutputPort());
-
-    vtkLookupTable *lut = vtkLookupTable::New();
-    lut->SetHueRange(0.1,0.0);
-    lut->SetSaturationRange(0.0,1.0);
-    lut->SetValueRange(1.0,255.0);
-    lut->SetNumberOfColors(100);
-    lut->Build();
-    mapper->SetLookupTable(lut);
-    mapper->SetScalarRange(startexploreval,endexploreval);
+    //     mapper->SetInputData( reader );
+    mapper->SetInputConnection(transformFilter->GetOutputPort());
 
     vtkActor *actor = vtkActor::New();
     actor->SetMapper(mapper);
 
-    vtkRenderer *ren = vtkRenderer::New();
+    mapper->SetScalarRange(startexploreval,endexploreval);
+    mapper->SetLookupTable(lut);
+
     ren->AddActor(actor);
+    ren->SetViewport(0, 0, 1, 1);
 
-    vtkCamera* cam = ren->GetActiveCamera();
-    cam->SetFocalPoint(0.5,0.5,0.5);
-    cam->SetPosition(-0.,2.0,3.0);
-    cam->SetViewUp(0.0,-5.0,0.0);
+    vtkCamera *cam ;
 
-    vtkRenderWindow* renwin = vtkRenderWindow::New();
-    renwin->OffScreenRenderingOn();
-    renwin->SetSize(winSize, winSize);
-    renwin->AddRenderer(ren);
-
-    // Read the data.
-    passNum=0;
-
-    float *rgba = new float[4*winSize*winSize];
-    float *auxrgba = new float[4*winSize*winSize];
-    float *auxzbuffer = new float[4*winSize*winSize];
-
-    for (int i = 0 ; i < winSize*winSize ; i++)
-    {  auxzbuffer[i]=1.0;
-        auxrgba[i * 4 + 0] =  1;
-        auxrgba[i * 4 + 1 ] = 1;
-        auxrgba[i * 4 + 2] = 1;
-        auxrgba[i * 4 + 3] = 0;
-    }
-
-    for (passNum=0; passNum<numPasses;passNum++) {
-        int step=(ZgridSize/numPasses)-1;
-        int zStart = passNum*step;
-        int zEnd = zStart+step;
-
-        GetMemorySize(("Pass "+std::to_string(numPasses)+ " before read").c_str());
-//        vtkRectilinearGrid *rg = ReadGrid(zStart, zEnd);
-        vtkRectilinearGrid *rg = ParallelReadGrid();
-        GetMemorySize(("Pass "+std::to_string(passNum)+ " after  read").c_str());
-
-        cf->SetInputData(rg);
-        rg->Delete();
-
-        // Force an update and set the parallel rank as the active scalars.
-        cf->Update();
-        cf->GetOutput()->GetPointData()->SetActiveScalars("pass_num");
-
-        renwin->Render();
-
-        rgba = renwin->GetRGBAPixelData(0, 0, winSize-1, winSize-1, 1);
-        float *zbuffer = renwin->GetZbufferData(0, 0, winSize-1, winSize-1);
-
-        for (int i = 0 ; i < winSize*winSize ; i++) {
-            if (auxzbuffer[i] > zbuffer[i]) {
-                auxzbuffer[i] = zbuffer[i];
-                auxrgba[i * 4 + 0] = rgba[i * 4 + 0];
-                auxrgba[i * 4 + 1] = rgba[i * 4 + 1];
-                auxrgba[i * 4 + 2] = rgba[i * 4 + 2];
-                auxrgba[i * 4 + 3] = rgba[i * 4 + 3];
-            }
-        }
-
-        char name[128];
-        sprintf(name, "image%d.png", passNum);
-        WriteImage(name, rgba, winSize,  winSize);
-
-        float *new_rgba = new float[4*winSize*winSize];
-//        bool didComposite = ComposeImageZbufferComposeImageZbuffer(new_rgba, zbuffer,  winSize, winSize);
-//        bool CompositeImageParallel(const float *rgbaIn, float *zBuffer, float *rgbaOut, int imageWidth, int imageHeight) {
-        bool didComposite = CompositeImageParallel(rgba, zbuffer, new_rgba, winSize, winSize);
+    cam= ren->GetActiveCamera();
+    cam->SetPosition(0.5, 3.0, 0.5);
+    cam->SetViewUp(0., 0.0, 1.0);
+    cam->SetFocalPoint(0., 0.0, 0.);
 
 
-        char namez[128];
-        sprintf(namez, "imageZ%d.png", passNum);
-        WriteImage(namez,new_rgba,winSize, winSize);
+    vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
+    iren->SetRenderWindow(renwin);
+    renwin->Render();
+    iren->Start();
 
-        free(rgba);
-        free(zbuffer);
-        free(new_rgba);
-    }
-
-    WriteImage("final_image.png", auxrgba, winSize, winSize);
-    free(auxrgba);
-    free(auxzbuffer);
-
-    GetMemorySize("end");
-    timer->StopTimer(t1,"time");
-
-    MPI_Finalize();
+    reader->Delete();
+    mapper->Delete();
+    cf->Delete();
+    ren->RemoveActor(actor);
+    actor->Delete();
+    ren->Delete();
+    renwin->Delete();
 }
-
 
 
 // You should not need to modify these routines.
 
-vtkRectilinearGrid *
-ReadGrid(int zStart, int zEnd)
+vtkRectilinearGrid* ReadGrid(int zStart, int zEnd)
 {
     int  i;
 	
@@ -356,6 +296,7 @@ ReadGrid(int zStart, int zEnd)
     if (ifile.fail())
     {
         cerr << prefix << "Unable to open file: " << location << "!!" << endl;
+        throw std::runtime_error("can't find the file!! Check the name and the path of this file? ");
     }
 	
     cerr << prefix << "Reading from " << zStart << " to " << zEnd << endl;
@@ -431,17 +372,12 @@ ReadGrid(int zStart, int zEnd)
 #error Unsupported choice setting
 #endif
     
- 
-
-    
-    
     ifile.seekg(offset, ios::beg);
     ifile.read((char *)arr, bytesToRead);
     ifile.close();
 	
     int min=+2147483647;
     int max =0;
-
 
     for (int i = 0 ; i < valuesToRead ; i++){
         if (min>(scalars->GetPointer(0))[i]) min=(scalars->GetPointer(0))[i];
@@ -460,9 +396,7 @@ ReadGrid(int zStart, int zEnd)
 #else
 #error Unsupported choice setting
 #endif
-            
-           
-            
+
         }
     }
    
@@ -492,9 +426,7 @@ ReadGrid(int zStart, int zEnd)
 }
 
 
-
-void
-WriteImage(const char *name, const float *rgba, int width, int height)
+void WriteImage(const char *name, const float *rgba, int width, int height)
 {
     vtkImageData *img = vtkImageData::New();
     img->SetDimensions(width, height, 1);
